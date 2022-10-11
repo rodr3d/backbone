@@ -17,31 +17,39 @@ class ApiController extends Controller
           $arrSett = [];
           foreach($zips as $zip){
               if(count($arrData) == 0){
-                  $arrData = [
-                              "zip_code" => $zip->d_codigo, 
-                              "locality" => strtoupper($zip->d_ciudad), 
-                              "federal_entity" => [
-                                  "key" => intval($zip->c_estado),
-                                  "name" => strtoupper($zip->d_estado),
-                                  "code"=>$zip->c_CP
-                              ],
-                              "settlements" => "",
-                              "municipality" => [
-                                  "key" => intval($zip->c_mnpio),
-                                  "name" => strtoupper($zip->D_mnpio), 
-                              ]
-                  ];
-              }
-              array_push($arrSett, [
-                  "key" => intval($zip->id_asenta_cpcons),
-                  "name" => strtoupper($zip->d_asenta),
-                  "zone_type" => strtoupper($zip->d_zona),
-                  "settlement_type" => ["name"=> $zip->d_tipo_asenta]
-
-              ]);
+                $arrData = [
+                            "zip_code" => $zip->d_codigo, 
+                            "locality" => strtoupper($this->eliminar_tildes(trim($zip->d_ciudad))),
+                            "federal_entity" => [
+                                "key" => intval($zip->c_estado),
+                                "name" => strtoupper($this->eliminar_tildes(trim($zip->d_estado))),
+                                "code"=> ($zip->c_CP == " ") ? null : $zip->c_CP
+                            ],
+                            "settlements" => "",
+                            "municipality" => [
+                                "key" => intval($zip->c_mnpio),
+                                "name" => strtoupper($this->eliminar_tildes(trim($zip->D_mnpio))), 
+                            ]
+                ];
+            }
+            array_push($arrSett, [
+                "key" => intval($zip->id_asenta_cpcons),
+                "name" => strtoupper($this->eliminar_tildes(trim($zip->d_asenta))),
+                "zone_type" => strtoupper($this->eliminar_tildes(trim($zip->d_zona))),
+                "settlement_type" => ["name"=> $this->eliminar_tildes(trim($zip->d_tipo_asenta))]
+                
+            ]);
           }
           $arrData["settlements"] = $arrSett;
-
-          echo json_encode($arrData);
+          header('Content-Type: application/json; charset=UTF-8');
+          echo json_encode($arrData, JSON_UNESCAPED_UNICODE);
+    }
+  
+    function eliminar_tildes($cadena){
+        $originales = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿ';
+        $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyyby';
+        $cadena = utf8_decode($cadena);
+        $cadena = strtr($cadena, utf8_decode($originales), $modificadas);
+        return utf8_encode($cadena);
     }
 }
