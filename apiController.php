@@ -10,6 +10,9 @@ class ApiController extends Controller
           $codeZip = $args["codeZip"];
 
           $zips = ZipCodes::where('d_codigo', $codeZip)->get();
+          if(count($zips) == 0){
+            return;
+          }
           $arrData = [];
           $arrSett = [];
           foreach($zips as $zip){
